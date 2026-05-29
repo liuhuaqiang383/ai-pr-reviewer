@@ -40,6 +40,29 @@
                                 <span>开始分析</span>
                             </button>
                         </div>
+
+                        <!-- AI Provider Selection -->
+                        <div class="provider-selection">
+                            <div class="provider-group">
+                                <label for="aiProvider">
+                                    <i class="fas fa-robot"></i> AI模型:
+                                </label>
+                                <select id="aiProvider">
+                                    <option value="claude">Claude</option>
+                                    <option value="openai">OpenAI GPT</option>
+                                    <option value="gemini">Google Gemini</option>
+                                </select>
+                            </div>
+                            <div class="provider-group">
+                                <label for="aiModel">
+                                    <i class="fas fa-microchip"></i> 版本:
+                                </label>
+                                <select id="aiModel">
+                                    <!-- Models will be populated dynamically -->
+                                </select>
+                            </div>
+                        </div>
+
                         <div class="input-hints">
                             <span><i class="fas fa-info-circle"></i> 支持任何公开的GitHub PR</span>
                             <span><i class="fas fa-key"></i> 配置Token可访问私有仓库</span>

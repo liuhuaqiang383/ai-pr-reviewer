@@ -10,9 +10,20 @@ class Config:
     GITHUB_TOKEN = os.getenv('GITHUB_TOKEN', '')
     GITHUB_API_BASE = 'https://api.github.com'
 
+    # AI Provider Selection (claude/openai/gemini)
+    AI_PROVIDER = os.getenv('AI_PROVIDER', 'claude')
+
     # Claude API Configuration
     CLAUDE_API_KEY = os.getenv('CLAUDE_API_KEY', '')
     CLAUDE_MODEL = os.getenv('CLAUDE_MODEL', 'claude-sonnet-4-20250514')
+
+    # OpenAI API Configuration
+    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
+    OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-4o')
+
+    # Google Gemini API Configuration
+    GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
+    GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-1.5-pro')
 
     # Application Settings
     MAX_DIFF_SIZE = 100000  # Maximum diff size in characters

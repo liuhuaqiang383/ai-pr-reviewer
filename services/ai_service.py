@@ -1,31 +1,25 @@
-import anthropic
 from typing import Dict, List, Optional
 from config import Config
+from services.providers.factory import ProviderFactory
 
 
 class AIService:
-    """Service for AI-powered code analysis using Claude"""
+    """Service for AI-powered code analysis"""
 
-    def __init__(self):
-        self.client = anthropic.Anthropic(api_key=Config.CLAUDE_API_KEY)
-        self.model = Config.CLAUDE_MODEL
+    def __init__(self, provider_name: Optional[str] = None, model: Optional[str] = None):
+        self.provider = ProviderFactory.create_provider(provider_name, model)
 
     def analyze_pr(self, pr_info: Dict, diff: str, files: List[Dict]) -> Dict:
         """Perform comprehensive PR analysis"""
         prompt = self._build_analysis_prompt(pr_info, diff, files)
 
         try:
-            response = self.client.messages.create(
-                model=self.model,
-                max_tokens=4096,
-                messages=[{
-                    "role": "user",
-                    "content": prompt
-                }]
-            )
-
-            analysis_text = response.content[0].text
-            return self._parse_analysis(analysis_text)
+            analysis_text = self.provider.analyze(prompt, max_tokens=4096)
+            result = self._parse_analysis(analysis_text)
+            # Add provider info to result
+            result['provider'] = self.provider.get_provider_name()
+            result['model'] = self.provider.get_model_name()
+            return result
 
         except Exception as e:
             return {
@@ -143,18 +137,13 @@ class AIService:
 """
 
         try:
-            response = self.client.messages.create(
-                model=self.model,
-                max_tokens=2048,
-                messages=[{
-                    "role": "user",
-                    "content": prompt
-                }]
-            )
+            analysis_text = self.provider.analyze(prompt, max_tokens=2048)
 
             return {
-                'analysis': response.content[0].text,
-                'issue_type': issue_type
+                'analysis': analysis_text,
+                'issue_type': issue_type,
+                'provider': self.provider.get_provider_name(),
+                'model': self.provider.get_model_name()
             }
 
         except Exception as e:

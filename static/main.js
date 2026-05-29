@@ -4,14 +4,38 @@ const prUrlInput = document.getElementById('prUrl');
 const submitBtn = document.getElementById('submitBtn');
 const loadingSection = document.getElementById('loadingSection');
 const resultsSection = document.getElementById('resultsSection');
+const aiProvider = document.getElementById('aiProvider');
+const aiModel = document.getElementById('aiModel');
 
 // API Base URL
 const API_BASE = '';
+
+// Models configuration
+const MODELS = {
+    claude: {
+        'claude-haiku-4-20250514': 'Claude Haiku (快速)',
+        'claude-sonnet-4-20250514': 'Claude Sonnet (平衡)',
+        'claude-opus-4-20250514': 'Claude Opus (高质量)'
+    },
+    openai: {
+        'gpt-4o': 'GPT-4o (推荐)',
+        'gpt-4o-mini': 'GPT-4o Mini (快速)',
+        'gpt-4-turbo': 'GPT-4 Turbo',
+        'gpt-3.5-turbo': 'GPT-3.5 Turbo (经济)'
+    },
+    gemini: {
+        'gemini-1.5-pro': 'Gemini 1.5 Pro (推荐)',
+        'gemini-1.5-flash': 'Gemini 1.5 Flash (快速)',
+        'gemini-1.0-pro': 'Gemini 1.0 Pro'
+    }
+};
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     reviewForm.addEventListener('submit', handleSubmit);
     setupFilterButtons();
+    setupProviderSelection();
+    updateModelOptions();
 });
 
 // Form Submission
@@ -29,13 +53,17 @@ async function handleSubmit(e) {
         // Simulate progress steps
         animateLoadingSteps();
 
-        // Make API call
+        // Make API call with provider and model
         const response = await fetch(`${API_BASE}/api/review`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ pr_url: prUrl })
+            body: JSON.stringify({
+                pr_url: prUrl,
+                provider: getSelectedProvider(),
+                model: getSelectedModel()
+            })
         });
 
         const data = await response.json();
@@ -284,6 +312,35 @@ function filterIssues(filter) {
             item.style.display = 'none';
         }
     });
+}
+
+// Provider Selection
+function setupProviderSelection() {
+    aiProvider.addEventListener('change', updateModelOptions);
+}
+
+function updateModelOptions() {
+    const provider = aiProvider.value;
+    const models = MODELS[provider] || {};
+
+    // Clear current options
+    aiModel.innerHTML = '';
+
+    // Add new options
+    Object.entries(models).forEach(([value, label]) => {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = label;
+        aiModel.appendChild(option);
+    });
+}
+
+function getSelectedProvider() {
+    return aiProvider.value;
+}
+
+function getSelectedModel() {
+    return aiModel.value;
 }
 
 // Helpers

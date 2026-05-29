@@ -179,6 +179,47 @@ body {
     gap: 0.5rem;
 }
 
+/* Provider Selection */
+.provider-selection {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1rem;
+    padding: 1rem;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+}
+
+.provider-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.provider-group label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    white-space: nowrap;
+}
+
+.provider-group select {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    cursor: pointer;
+    min-width: 150px;
+}
+
+.provider-group select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
 /* Loading Section */
 .loading-section {
     margin-bottom: 2rem;

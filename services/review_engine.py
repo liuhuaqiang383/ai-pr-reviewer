@@ -3,15 +3,16 @@ from typing import Dict, List, Optional
 from concurrent.futures import ThreadPoolExecutor
 from services.github_service import GitHubService
 from services.ai_service import AIService
+from services.providers.factory import ProviderFactory
 from config import Config
 
 
 class ReviewEngine:
     """Main engine for orchestrating PR reviews"""
 
-    def __init__(self):
+    def __init__(self, provider_name: Optional[str] = None, model: Optional[str] = None):
         self.github = GitHubService()
-        self.ai = AIService()
+        self.ai = AIService(provider_name, model)
         self.executor = ThreadPoolExecutor(max_workers=4)
 
     def review_pr(self, pr_url: str) -> Dict:
