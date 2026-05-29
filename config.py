@@ -16,20 +16,6 @@ class Config:
     DEFAULT_AI_PROVIDER = os.getenv('DEFAULT_AI_PROVIDER', 'openai')
     DEFAULT_AI_MODEL = os.getenv('DEFAULT_AI_MODEL', 'gpt-4o')
 
-    # API Keys for built-in providers
-    AI_API_KEYS = {
-        'openai': os.getenv('OPENAI_API_KEY', ''),
-        'claude': os.getenv('CLAUDE_API_KEY', ''),
-        'gemini': os.getenv('GEMINI_API_KEY', ''),
-        'deepseek': os.getenv('DEEPSEEK_API_KEY', ''),
-        'moonshot': os.getenv('MOONSHOT_API_KEY', ''),
-        'zhipu': os.getenv('ZHIPU_API_KEY', ''),
-        'qwen': os.getenv('QWEN_API_KEY', ''),
-        'ollama': os.getenv('OLLAMA_API_KEY', ''),  # 本地模型通常不需要key
-        'lmstudio': os.getenv('LMSTUDIO_API_KEY', ''),
-        'vllm': os.getenv('VLLM_API_KEY', ''),
-    }
-
     # Custom providers configuration (JSON string or file path)
     CUSTOM_PROVIDERS_JSON = os.getenv('CUSTOM_PROVIDERS', '{}')
     try:

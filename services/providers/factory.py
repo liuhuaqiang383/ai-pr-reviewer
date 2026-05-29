@@ -139,7 +139,7 @@ class ProviderFactory:
         """创建内置提供商"""
         template = self.BUILTIN_TEMPLATES[provider_id]
         provider_type = template['type']
-        api_key = Config.AI_API_KEYS.get(provider_id, '')
+        api_key = ''
 
         if provider_type == 'openai_compatible':
             return OpenAICompatibleProvider(
@@ -168,14 +168,13 @@ class ProviderFactory:
 
         # 内置提供商
         for pid, template in self.BUILTIN_TEMPLATES.items():
-            api_key = Config.AI_API_KEYS.get(pid, '')
             result[pid] = {
                 'id': pid,
                 'name': template['name'],
                 'type': template['type'],
                 'base_url': template['base_url'],
                 'models': template['models'],
-                'available': bool(api_key) or 'localhost' in template['base_url'] or '127.0.0.1' in template['base_url'],
+                'available': 'localhost' in template['base_url'] or '127.0.0.1' in template['base_url'],
                 'is_custom': False
             }
 
