@@ -1,0 +1,53 @@
+{
+  "my-local-llm": {
+    "name": "我的本地模型",
+    "type": "openai_compatible",
+    "base_url": "http://localhost:11434/v1",
+    "api_key": "",
+    "model": "llama3",
+    "models": ["llama3", "codellama", "mistral"]
+  },
+  "my-api-server": {
+    "name": "公司内部API",
+    "type": "openai_compatible",
+    "base_url": "https://api.mycompany.com/v1",
+    "api_key": "sk-xxxx",
+    "model": "company-model-v1",
+    "models": ["company-model-v1", "company-model-v2"]
+  },
+  "azure-openai": {
+    "name": "Azure OpenAI",
+    "type": "openai_compatible",
+    "base_url": "https://myresource.openai.azure.com/openai/deployments/mydeployment",
+    "api_key": "azure-key",
+    "model": "gpt-4",
+    "headers": {
+      "api-version": "2024-02-01"
+    }
+  },
+  "aws-bedrock-claude": {
+    "name": "AWS Bedrock Claude",
+    "type": "anthropic_compatible",
+    "base_url": "https://bedrock-runtime.us-east-1.amazonaws.com/model/anthropic.claude-3-sonnet-20240229-v1:0",
+    "api_key": "aws-key",
+    "model": "anthropic.claude-3-sonnet-20240229-v1:0"
+  },
+  "custom-format-api": {
+    "name": "自定义格式API",
+    "type": "custom",
+    "base_url": "http://custom-api.com",
+    "api_key": "key",
+    "model": "model-1",
+    "request_format": {
+      "path": "/generate",
+      "body_template": {
+        "model_name": "{model}",
+        "user_message": "{prompt}",
+        "max_length": "{max_tokens}"
+      }
+    },
+    "response_format": {
+      "content_path": "generated_text"
+    }
+  }
+}

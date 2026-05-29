@@ -6,36 +6,24 @@ const loadingSection = document.getElementById('loadingSection');
 const resultsSection = document.getElementById('resultsSection');
 const aiProvider = document.getElementById('aiProvider');
 const aiModel = document.getElementById('aiModel');
+const customConfigBtn = document.getElementById('customConfigBtn');
+const customConfigModal = document.getElementById('customConfigModal');
 
 // API Base URL
 const API_BASE = '';
 
-// Models configuration
-const MODELS = {
-    claude: {
-        'claude-haiku-4-20250514': 'Claude Haiku (快速)',
-        'claude-sonnet-4-20250514': 'Claude Sonnet (平衡)',
-        'claude-opus-4-20250514': 'Claude Opus (高质量)'
-    },
-    openai: {
-        'gpt-4o': 'GPT-4o (推荐)',
-        'gpt-4o-mini': 'GPT-4o Mini (快速)',
-        'gpt-4-turbo': 'GPT-4 Turbo',
-        'gpt-3.5-turbo': 'GPT-3.5 Turbo (经济)'
-    },
-    gemini: {
-        'gemini-1.5-pro': 'Gemini 1.5 Pro (推荐)',
-        'gemini-1.5-flash': 'Gemini 1.5 Flash (快速)',
-        'gemini-1.0-pro': 'Gemini 1.0 Pro'
-    }
-};
+// Providers data (will be fetched from API)
+let providersData = {};
+
+// Custom config
+let customConfig = null;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     reviewForm.addEventListener('submit', handleSubmit);
     setupFilterButtons();
     setupProviderSelection();
-    updateModelOptions();
+    loadProviders();
 });
 
 // Form Submission
@@ -53,17 +41,29 @@ async function handleSubmit(e) {
         // Simulate progress steps
         animateLoadingSteps();
 
-        // Make API call with provider and model
+        // Build request body
+        const requestBody = {
+            pr_url: prUrl,
+            provider: getSelectedProvider(),
+            model: getSelectedModel()
+        };
+
+        // Add custom config if using custom provider
+        if (getSelectedProvider() === 'custom') {
+            const config = getCustomConfig();
+            if (!config) {
+                throw new Error('请先配置自定义AI提供商');
+            }
+            requestBody.custom_config = config;
+        }
+
+        // Make API call
         const response = await fetch(`${API_BASE}/api/review`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                pr_url: prUrl,
-                provider: getSelectedProvider(),
-                model: getSelectedModel()
-            })
+            body: JSON.stringify(requestBody)
         });
 
         const data = await response.json();
@@ -317,20 +317,66 @@ function filterIssues(filter) {
 // Provider Selection
 function setupProviderSelection() {
     aiProvider.addEventListener('change', updateModelOptions);
+    customConfigBtn.addEventListener('click', openCustomConfig);
+}
+
+async function loadProviders() {
+    try {
+        const response = await fetch(`${API_BASE}/api/providers`);
+        providersData = await response.json();
+        populateProviders();
+    } catch (error) {
+        console.error('Failed to load providers:', error);
+        // Fallback to default options
+        aiProvider.innerHTML = '<option value="openai">OpenAI</option>';
+    }
+}
+
+function populateProviders() {
+    aiProvider.innerHTML = '';
+
+    // Add custom config option first
+    const customOption = document.createElement('option');
+    customOption.value = 'custom';
+    customOption.textContent = '⚡ 自定义配置';
+    aiProvider.appendChild(customOption);
+
+    // Add available providers
+    Object.entries(providersData).forEach(([id, info]) => {
+        const option = document.createElement('option');
+        option.value = id;
+        option.textContent = `${info.available ? '●' : '○'} ${info.name}`;
+        option.disabled = !info.available;
+        aiProvider.appendChild(option);
+    });
+
+    // Select first available provider
+    const firstAvailable = Object.entries(providersData).find(([_, info]) => info.available);
+    if (firstAvailable) {
+        aiProvider.value = firstAvailable[0];
+    }
+
+    updateModelOptions();
 }
 
 function updateModelOptions() {
     const provider = aiProvider.value;
-    const models = MODELS[provider] || {};
-
-    // Clear current options
     aiModel.innerHTML = '';
 
-    // Add new options
-    Object.entries(models).forEach(([value, label]) => {
+    if (provider === 'custom') {
+        // Show custom config modal
+        openCustomConfig();
+        return;
+    }
+
+    const providerInfo = providersData[provider];
+    if (!providerInfo) return;
+
+    const models = providerInfo.models || [];
+    models.forEach(model => {
         const option = document.createElement('option');
-        option.value = value;
-        option.textContent = label;
+        option.value = model;
+        option.textContent = model;
         aiModel.appendChild(option);
     });
 }
@@ -341,6 +387,97 @@ function getSelectedProvider() {
 
 function getSelectedModel() {
     return aiModel.value;
+}
+
+function getCustomConfig() {
+    return customConfig;
+}
+
+// Custom Config Modal
+function openCustomConfig() {
+    customConfigModal.classList.remove('hidden');
+}
+
+function closeCustomConfig() {
+    customConfigModal.classList.add('hidden');
+    // Reset to previous selection if custom not applied
+    if (!customConfig) {
+        const firstAvailable = Object.entries(providersData).find(([_, info]) => info.available);
+        if (firstAvailable) {
+            aiProvider.value = firstAvailable[0];
+            updateModelOptions();
+        }
+    }
+}
+
+async function testCustomConfig() {
+    const config = getCustomConfigFromForm();
+    const resultDiv = document.getElementById('customTestResult');
+
+    try {
+        const response = await fetch(`${API_BASE}/api/providers/test`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ custom_config: config })
+        });
+
+        const data = await response.json();
+
+        resultDiv.classList.remove('hidden', 'success', 'error');
+        if (data.success) {
+            resultDiv.classList.add('success');
+            resultDiv.innerHTML = `<i class="fas fa-check-circle"></i> 连接成功！模型: ${data.model}`;
+        } else {
+            resultDiv.classList.add('error');
+            resultDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${data.error}`;
+        }
+    } catch (error) {
+        resultDiv.classList.remove('hidden', 'success', 'error');
+        resultDiv.classList.add('error');
+        resultDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> 测试失败: ${error.message}`;
+    }
+}
+
+function applyCustomConfig() {
+    customConfig = getCustomConfigFromForm();
+
+    // Update UI to show custom config is active
+    aiProvider.value = 'custom';
+
+    // Add custom model to select
+    aiModel.innerHTML = '';
+    const option = document.createElement('option');
+    option.value = customConfig.model;
+    option.textContent = `${customConfig.model} (自定义)`;
+    aiModel.appendChild(option);
+
+    closeCustomConfig();
+
+    // Show success message
+    showNotification('自定义配置已应用', 'success');
+}
+
+function getCustomConfigFromForm() {
+    return {
+        name: document.getElementById('customName').value || 'Custom LLM',
+        type: document.getElementById('customType').value,
+        base_url: document.getElementById('customBaseUrl').value,
+        api_key: document.getElementById('customApiKey').value,
+        model: document.getElementById('customModel').value || 'default'
+    };
+}
+
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check' : 'info'}-circle"></i> ${message}`;
+    document.body.appendChild(notification);
+
+    // Remove after 3 seconds
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
 }
 
 // Helpers

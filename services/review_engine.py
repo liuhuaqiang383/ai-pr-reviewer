@@ -1,5 +1,5 @@
 import asyncio
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 from concurrent.futures import ThreadPoolExecutor
 from services.github_service import GitHubService
 from services.ai_service import AIService
@@ -10,9 +10,14 @@ from config import Config
 class ReviewEngine:
     """Main engine for orchestrating PR reviews"""
 
-    def __init__(self, provider_name: Optional[str] = None, model: Optional[str] = None):
+    def __init__(
+        self,
+        provider_id: Optional[str] = None,
+        model: Optional[str] = None,
+        custom_config: Optional[Dict] = None
+    ):
         self.github = GitHubService()
-        self.ai = AIService(provider_name, model)
+        self.ai = AIService(provider_id, model, custom_config)
         self.executor = ThreadPoolExecutor(max_workers=4)
 
     def review_pr(self, pr_url: str) -> Dict:

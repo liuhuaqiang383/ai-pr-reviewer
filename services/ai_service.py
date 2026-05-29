@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 from config import Config
 from services.providers.factory import ProviderFactory
 
@@ -6,8 +6,14 @@ from services.providers.factory import ProviderFactory
 class AIService:
     """Service for AI-powered code analysis"""
 
-    def __init__(self, provider_name: Optional[str] = None, model: Optional[str] = None):
-        self.provider = ProviderFactory.create_provider(provider_name, model)
+    def __init__(
+        self,
+        provider_id: Optional[str] = None,
+        model: Optional[str] = None,
+        custom_config: Optional[Dict] = None
+    ):
+        self.factory = ProviderFactory()
+        self.provider = self.factory.create_provider(provider_id, model, custom_config)
 
     def analyze_pr(self, pr_info: Dict, diff: str, files: List[Dict]) -> Dict:
         """Perform comprehensive PR analysis"""
