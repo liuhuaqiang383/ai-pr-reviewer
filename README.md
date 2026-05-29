@@ -12,6 +12,10 @@
 - **改进建议**: 提供具体的代码改进建议
 - **Review检查清单**: 自动生成审查检查项
 - **变更总结**: 智能总结PR的整体变更
+- **GitHub评论**: 分析结果直接评论到GitHub PR
+- **流式输出**: 实时显示分析进度
+- **智能缓存**: 避免重复分析，24小时自动过期
+- **结果导出**: 支持Markdown/HTML/JSON格式导出
 
 ## 快速开始
 
@@ -205,6 +209,80 @@ Content-Type: application/json
 {
   "provider": "openai",
   "model": "gpt-4o"
+}
+```
+
+### 流式分析 (Server-Sent Events)
+
+```
+POST /api/review/stream
+Content-Type: application/json
+
+{
+  "pr_url": "https://github.com/owner/repo/pull/123",
+  "provider": "openai",
+  "model": "gpt-4o"
+}
+
+# 响应格式 (SSE):
+# data: {"type": "progress", "step": 1, "message": "获取PR信息..."}
+# data: {"type": "pr_info", "data": {...}}
+# data: {"type": "progress", "step": 2, "message": "获取变更文件..."}
+# data: {"type": "complete", "data": {...}}
+```
+
+### 发布评论到GitHub PR
+
+```
+POST /api/comment
+Content-Type: application/json
+
+{
+  "pr_url": "https://github.com/owner/repo/pull/123",
+  "analysis": { ... },  // 分析结果
+  "type": "review",      // review 或 comment
+  "provider": "openai",
+  "model": "gpt-4o"
+}
+```
+
+### 导出分析结果
+
+```
+POST /api/export
+Content-Type: application/json
+
+{
+  "result": { ... },     // 完整分析结果
+  "format": "markdown",  // markdown, html, json
+  "provider": "openai",
+  "model": "gpt-4o"
+}
+
+# 响应: 文件下载
+```
+
+### 缓存统计
+
+```
+GET /api/cache/stats
+
+# 响应:
+# {
+#   "total": 10,
+#   "size_bytes": 102400,
+#   "size_mb": 0.1
+# }
+```
+
+### 清理缓存
+
+```
+POST /api/cache/clear
+Content-Type: application/json
+
+{
+  "older_than_hours": 24  // 清理超过24小时的缓存
 }
 ```
 
