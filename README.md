@@ -45,29 +45,27 @@ cp .env.example .env
 编辑 `.env` 文件，配置你要使用的AI提供商：
 
 ```env
-# 选择默认AI提供商
+# 选择默认AI提供商和模型
 DEFAULT_AI_PROVIDER=openai
-DEFAULT_AI_MODEL=gpt-4o
+DEFAULT_AI_MODEL=your-model-name
 
-# 配置对应的API Key (按需配置一个或多个)
-OPENAI_API_KEY=sk-xxx
-CLAUDE_API_KEY=sk-ant-xxx
-GEMINI_API_KEY=AIzaSy-xxx
-DEEPSEEK_API_KEY=sk-xxx
+# 配置对应的API Key
+OPENAI_API_KEY=your-api-key
 ```
 
-**支持的AI提供商：**
+**内置提供商环境变量：**
 
-| 提供商 | 环境变量 | 获取地址 |
-|--------|----------|----------|
-| OpenAI | `OPENAI_API_KEY` | https://platform.openai.com/api-keys |
-| Claude | `CLAUDE_API_KEY` | https://console.anthropic.com |
-| Gemini | `GEMINI_API_KEY` | https://aistudio.google.com/app/apikey |
-| DeepSeek | `DEEPSEEK_API_KEY` | https://platform.deepseek.com |
-| Moonshot | `MOONSHOT_API_KEY` | https://platform.moonshot.cn |
-| 智谱AI | `ZHIPU_API_KEY` | https://open.bigmodel.cn |
-| 通义千问 | `QWEN_API_KEY` | https://dashscope.aliyun.com |
-| Ollama | 无需配置 | https://ollama.ai |
+| 提供商 | 环境变量 |
+|--------|----------|
+| OpenAI | `OPENAI_API_KEY` |
+| Claude | `CLAUDE_API_KEY` |
+| Gemini | `GEMINI_API_KEY` |
+| DeepSeek | `DEEPSEEK_API_KEY` |
+| Moonshot | `MOONSHOT_API_KEY` |
+| 智谱AI | `ZHIPU_API_KEY` |
+| 通义千问 | `QWEN_API_KEY` |
+
+> 本地模型（如Ollama）通常不需要API Key。
 
 ### 4. 启动服务
 
@@ -315,45 +313,15 @@ GET /api/health
 - `DEFAULT_AI_PROVIDER`: 默认AI提供商
 - `DEFAULT_AI_MODEL`: 默认模型
 
-## 支持的AI模型
+## 支持的AI提供商
 
-### 内置提供商
+系统支持任意兼容OpenAI或Anthropic API格式的AI服务，包括但不限于：
 
-| 提供商 | 模型 | 特点 | 价格 |
-|--------|------|------|------|
-| **OpenAI** | gpt-4o | 综合能力强 | $$ |
-| | gpt-4o-mini | 速度快，性价比高 | $ |
-| | gpt-4-turbo | 长上下文 | $$$ |
-| | gpt-3.5-turbo | 经济实惠 | $ |
-| **Claude** | claude-sonnet-4-20250514 | 代码理解强 | $$ |
-| | claude-opus-4-20250514 | 最高质量 | $$$ |
-| | claude-haiku-4-20250514 | 极速响应 | $ |
-| **Gemini** | gemini-1.5-pro | 多模态能力强 | $$ |
-| | gemini-1.5-flash | 速度快 | $ |
-| **DeepSeek** | deepseek-chat | 中文优化 | $ |
-| | deepseek-coder | 代码专用 | $ |
-| **Moonshot** | moonshot-v1-128k | 超长上下文 | $$ |
-| **智谱AI** | glm-4 | 中文能力强 | $ |
-| **通义千问** | qwen-max | 阿里云出品 | $ |
+- **云服务**: OpenAI, Claude, Gemini, DeepSeek, Moonshot, 智谱AI, 通义千问等
+- **本地模型**: Ollama, LM Studio, vLLM等
+- **私有部署**: 任何兼容OpenAI API格式的自建服务
 
-### 本地模型
-
-| 工具 | 模型 | 特点 |
-|------|------|------|
-| **Ollama** | llama3, codellama, mistral | 免费，隐私保护 |
-| **LM Studio** | 任意GGUF模型 | 图形界面，易于使用 |
-| **vLLM** | 任意开源模型 | 高性能推理 |
-
-### 模型选择建议
-
-| 场景 | 推荐模型 | 理由 |
-|------|----------|------|
-| 快速预览 | gpt-4o-mini, claude-haiku | 速度快，成本低 |
-| 日常审查 | gpt-4o, claude-sonnet | 平衡质量和速度 |
-| 深度分析 | claude-opus, gpt-4-turbo | 最高质量 |
-| 中文项目 | deepseek, glm-4, qwen | 中文理解更好 |
-| 代码审查 | deepseek-coder, codellama | 代码专用优化 |
-| 隐私敏感 | Ollama本地模型 | 数据不外传 |
+用户可在配置文件或前端界面中自行填写API地址、密钥和模型名称。
 
 ## 使用场景
 
