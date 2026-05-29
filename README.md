@@ -1,10 +1,12 @@
 # AI PR Review 助手
 
-一个基于Claude AI的智能代码评审工具，帮助开发者提升Pull Request的Review效率与质量。
+一个支持**任意AI模型**的智能代码评审工具，帮助开发者提升Pull Request的Review效率与质量。
 
 ## 功能特性
 
-- **智能分析**: 使用Claude AI深度分析代码变更
+- **多模型支持**: 支持OpenAI、Claude、Gemini、DeepSeek、Moonshot、智谱、通义千问等主流AI，以及Ollama等本地模型
+- **自由配置**: 可通过环境变量、JSON配置或前端界面任意添加AI提供商
+- **智能分析**: 深度分析代码变更，识别潜在问题
 - **风险评估**: 自动评估PR风险等级（低/中/高/严重）
 - **问题检测**: 识别潜在Bug、安全漏洞、性能问题
 - **改进建议**: 提供具体的代码改进建议
@@ -28,7 +30,7 @@ cd ai-pr-reviewer
 pip install -r requirements.txt
 ```
 
-### 3. 配置API密钥
+### 3. 配置AI模型
 
 复制环境变量示例文件：
 
@@ -36,19 +38,32 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-编辑 `.env` 文件，填入你的API密钥：
+编辑 `.env` 文件，配置你要使用的AI提供商：
 
 ```env
-# GitHub Token (可选，用于访问私有仓库)
-GITHUB_TOKEN=your_github_token_here
+# 选择默认AI提供商
+DEFAULT_AI_PROVIDER=openai
+DEFAULT_AI_MODEL=gpt-4o
 
-# Claude API Key (必需)
-CLAUDE_API_KEY=your_claude_api_key_here
+# 配置对应的API Key (按需配置一个或多个)
+OPENAI_API_KEY=sk-xxx
+CLAUDE_API_KEY=sk-ant-xxx
+GEMINI_API_KEY=AIzaSy-xxx
+DEEPSEEK_API_KEY=sk-xxx
 ```
 
-**获取API密钥：**
-- GitHub Token: https://github.com/settings/tokens
-- Claude API Key: https://console.anthropic.com
+**支持的AI提供商：**
+
+| 提供商 | 环境变量 | 获取地址 |
+|--------|----------|----------|
+| OpenAI | `OPENAI_API_KEY` | https://platform.openai.com/api-keys |
+| Claude | `CLAUDE_API_KEY` | https://console.anthropic.com |
+| Gemini | `GEMINI_API_KEY` | https://aistudio.google.com/app/apikey |
+| DeepSeek | `DEEPSEEK_API_KEY` | https://platform.deepseek.com |
+| Moonshot | `MOONSHOT_API_KEY` | https://platform.moonshot.cn |
+| 智谱AI | `ZHIPU_API_KEY` | https://open.bigmodel.cn |
+| 通义千问 | `QWEN_API_KEY` | https://dashscope.aliyun.com |
+| Ollama | 无需配置 | https://ollama.ai |
 
 ### 4. 启动服务
 
@@ -62,31 +77,89 @@ python app.py
 
 1. 在浏览器中打开 http://localhost:5000
 2. 粘贴GitHub PR URL
-3. 点击"开始分析"
-4. 等待AI完成分析
-5. 查看详细的审查报告
+3. 选择AI提供商和模型
+4. 点击"开始分析"
+5. 等待AI完成分析
+6. 查看详细的审查报告
 
 ## 项目结构
 
 ```
 ai-pr-reviewer/
-├── app.py                 # Flask主应用
-├── config.py             # 配置文件
-├── requirements.txt      # Python依赖
-├── .env.example         # 环境变量示例
+├── app.py                      # Flask主应用
+├── config.py                   # 配置文件
+├── requirements.txt            # Python依赖
+├── .env.example                # 环境变量示例
+├── custom_providers.example.json # 自定义提供商配置示例
 ├── services/
 │   ├── __init__.py
-│   ├── github_service.py  # GitHub API服务
-│   ├── ai_service.py      # AI分析服务
-│   └── review_engine.py   # 审查引擎
+│   ├── github_service.py       # GitHub API服务
+│   ├── ai_service.py           # AI分析服务
+│   ├── review_engine.py        # 审查引擎
+│   └── providers/
+│       ├── __init__.py
+│       ├── base.py             # Provider基类
+│       ├── openai_compatible.py # OpenAI兼容Provider
+│       ├── anthropic_compatible.py # Anthropic兼容Provider
+│       ├── custom_provider.py  # 自定义格式Provider
+│       └── factory.py          # Provider工厂
 ├── templates/
-│   └── index.html         # 前端页面
+│   └── index.html              # 前端页面
 ├── static/
-│   ├── style.css         # 样式文件
-│   └── main.js          # 前端逻辑
-├── README.md            # 项目说明
-└── DESIGN.md           # 设计文档
+│   ├── style.css               # 样式文件
+│   └── main.js                 # 前端逻辑
+├── README.md                   # 项目说明
+└── DESIGN.md                   # 设计文档
 ```
+
+## 自定义AI提供商
+
+除了内置的AI提供商，你可以添加任意自定义模型：
+
+### 方式1: 环境变量配置
+
+在 `.env` 文件中添加JSON配置：
+
+```env
+CUSTOM_PROVIDERS={"my-llm": {"name": "我的模型", "type": "openai_compatible", "base_url": "http://localhost:11434/v1", "model": "llama3"}}
+```
+
+### 方式2: JSON配置文件
+
+创建 `custom_providers.json`：
+
+```json
+{
+  "my-local-llm": {
+    "name": "本地Ollama",
+    "type": "openai_compatible",
+    "base_url": "http://localhost:11434/v1",
+    "api_key": "",
+    "model": "llama3"
+  },
+  "company-api": {
+    "name": "公司内部API",
+    "type": "openai_compatible",
+    "base_url": "https://api.company.com/v1",
+    "api_key": "sk-xxx",
+    "model": "company-model"
+  }
+}
+```
+
+然后在 `.env` 中指向该文件：
+
+```env
+CUSTOM_PROVIDERS=./custom_providers.json
+```
+
+### 方式3: 前端界面配置
+
+1. 打开 http://localhost:5000
+2. 在AI提供商下拉框选择"自定义配置"
+3. 填写API地址、Key、模型名
+4. 点击"测试连接"验证
+5. 点击"应用"开始使用
 
 ## API接口
 
@@ -97,7 +170,41 @@ POST /api/review
 Content-Type: application/json
 
 {
-  "pr_url": "https://github.com/owner/repo/pull/123"
+  "pr_url": "https://github.com/owner/repo/pull/123",
+  "provider": "openai",        // 可选，默认使用配置的提供商
+  "model": "gpt-4o"           // 可选，默认使用配置的模型
+}
+```
+
+**使用自定义配置：**
+
+```json
+{
+  "pr_url": "https://github.com/owner/repo/pull/123",
+  "custom_config": {
+    "name": "My LLM",
+    "type": "openai_compatible",
+    "base_url": "http://localhost:11434/v1",
+    "model": "llama3"
+  }
+}
+```
+
+### 获取可用提供商
+
+```
+GET /api/providers
+```
+
+### 测试提供商连接
+
+```
+POST /api/providers/test
+Content-Type: application/json
+
+{
+  "provider": "openai",
+  "model": "gpt-4o"
 }
 ```
 
@@ -109,7 +216,9 @@ Content-Type: application/json
 
 {
   "pr_url": "https://github.com/owner/repo/pull/123",
-  "filename": "src/main.py"
+  "filename": "src/main.py",
+  "provider": "claude",
+  "model": "claude-sonnet-4-20250514"
 }
 ```
 
@@ -125,15 +234,48 @@ GET /api/health
 
 - `MAX_DIFF_SIZE`: 最大diff大小（默认100KB）
 - `MAX_FILES_TO_REVIEW`: 最大审查文件数（默认50）
-- `CLAUDE_MODEL`: 使用的Claude模型
+- `DEFAULT_AI_PROVIDER`: 默认AI提供商
+- `DEFAULT_AI_MODEL`: 默认模型
 
-## 模型选择建议
+## 支持的AI模型
 
-| 模型 | 适用场景 | 特点 |
+### 内置提供商
+
+| 提供商 | 模型 | 特点 | 价格 |
+|--------|------|------|------|
+| **OpenAI** | gpt-4o | 综合能力强 | $$ |
+| | gpt-4o-mini | 速度快，性价比高 | $ |
+| | gpt-4-turbo | 长上下文 | $$$ |
+| | gpt-3.5-turbo | 经济实惠 | $ |
+| **Claude** | claude-sonnet-4-20250514 | 代码理解强 | $$ |
+| | claude-opus-4-20250514 | 最高质量 | $$$ |
+| | claude-haiku-4-20250514 | 极速响应 | $ |
+| **Gemini** | gemini-1.5-pro | 多模态能力强 | $$ |
+| | gemini-1.5-flash | 速度快 | $ |
+| **DeepSeek** | deepseek-chat | 中文优化 | $ |
+| | deepseek-coder | 代码专用 | $ |
+| **Moonshot** | moonshot-v1-128k | 超长上下文 | $$ |
+| **智谱AI** | glm-4 | 中文能力强 | $ |
+| **通义千问** | qwen-max | 阿里云出品 | $ |
+
+### 本地模型
+
+| 工具 | 模型 | 特点 |
+|------|------|------|
+| **Ollama** | llama3, codellama, mistral | 免费，隐私保护 |
+| **LM Studio** | 任意GGUF模型 | 图形界面，易于使用 |
+| **vLLM** | 任意开源模型 | 高性能推理 |
+
+### 模型选择建议
+
+| 场景 | 推荐模型 | 理由 |
 |------|----------|------|
-| claude-haiku-4-20250514 | 快速审查 | 速度快，成本低 |
-| claude-sonnet-4-20250514 | 日常审查 | 平衡速度和质量 |
-| claude-opus-4-20250514 | 深度分析 | 最高质量，速度较慢 |
+| 快速预览 | gpt-4o-mini, claude-haiku | 速度快，成本低 |
+| 日常审查 | gpt-4o, claude-sonnet | 平衡质量和速度 |
+| 深度分析 | claude-opus, gpt-4-turbo | 最高质量 |
+| 中文项目 | deepseek, glm-4, qwen | 中文理解更好 |
+| 代码审查 | deepseek-coder, codellama | 代码专用优化 |
+| 隐私敏感 | Ollama本地模型 | 数据不外传 |
 
 ## 使用场景
 
