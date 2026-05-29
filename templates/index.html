@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI PR Review 助手</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-code-branch"></i>
+                    <h1>AI PR Review 助手</h1>
+                </div>
+                <p class="tagline">智能代码评审，提升Review效率</p>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Input Section -->
+            <section class="input-section">
+                <div class="input-card">
+                    <h2><i class="fas fa-search"></i> 开始审查</h2>
+                    <form id="reviewForm">
+                        <div class="input-group">
+                            <input
+                                type="text"
+                                id="prUrl"
+                                placeholder="输入GitHub PR URL，例如: https://github.com/owner/repo/pull/123"
+                                required
+                            >
+                            <button type="submit" id="submitBtn">
+                                <i class="fas fa-magic"></i>
+                                <span>开始分析</span>
+                            </button>
+                        </div>
+                        <div class="input-hints">
+                            <span><i class="fas fa-info-circle"></i> 支持任何公开的GitHub PR</span>
+                            <span><i class="fas fa-key"></i> 配置Token可访问私有仓库</span>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Loading State -->
+            <section id="loadingSection" class="loading-section hidden">
+                <div class="loading-card">
+                    <div class="loading-spinner"></div>
+                    <h3>正在分析PR...</h3>
+                    <p>AI正在审查代码变更，请稍候</p>
+                    <div class="loading-steps">
+                        <div class="step active" id="step1">
+                            <i class="fas fa-download"></i> 获取PR数据
+                        </div>
+                        <div class="step" id="step2">
+                            <i class="fas fa-code"></i> 分析代码变更
+                        </div>
+                        <div class="step" id="step3">
+                            <i class="fas fa-brain"></i> 生成审查报告
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section id="resultsSection" class="results-section hidden">
+                <!-- PR Info Card -->
+                <div class="result-card pr-info-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-info-circle"></i> PR 概览</h2>
+                        <a id="prLink" href="#" target="_blank" class="pr-link">
+                            <i class="fab fa-github"></i> 在GitHub查看
+                        </a>
+                    </div>
+                    <div class="pr-meta">
+                        <div class="meta-item">
+                            <span class="label">标题</span>
+                            <span id="prTitle" class="value"></span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="label">作者</span>
+                            <span id="prAuthor" class="value"></span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="label">分支</span>
+                            <span id="prBranch" class="value"></span>
+                        </div>
+                    </div>
+                    <div class="pr-stats">
+                        <div class="stat">
+                            <span class="stat-value" id="statFiles">0</span>
+                            <span class="stat-label">文件</span>
+                        </div>
+                        <div class="stat additions">
+                            <span class="stat-value" id="statAdditions">0</span>
+                            <span class="stat-label">新增</span>
+                        </div>
+                        <div class="stat deletions">
+                            <span class="stat-value" id="statDeletions">0</span>
+                            <span class="stat-label">删除</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Risk Level Card -->
+                <div class="result-card risk-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-shield-alt"></i> 风险评估</h2>
+                    </div>
+                    <div class="risk-level" id="riskLevel">
+                        <div class="risk-badge" id="riskBadge">LOW</div>
+                        <p id="riskDescription"></p>
+                    </div>
+                </div>
+
+                <!-- Summary Card -->
+                <div class="result-card summary-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-file-alt"></i> 变更总结</h2>
+                    </div>
+                    <div class="summary-content" id="summaryContent"></div>
+                </div>
+
+                <!-- Issues Card -->
+                <div class="result-card issues-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-exclamation-triangle"></i> 发现的问题</h2>
+                        <div class="issue-filters">
+                            <button class="filter-btn active" data-filter="all">全部</button>
+                            <button class="filter-btn" data-filter="critical">严重</button>
+                            <button class="filter-btn" data-filter="warning">警告</button>
+                            <button class="filter-btn" data-filter="info">信息</button>
+                        </div>
+                    </div>
+                    <div class="issues-list" id="issuesList"></div>
+                </div>
+
+                <!-- Suggestions Card -->
+                <div class="result-card suggestions-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-lightbulb"></i> 改进建议</h2>
+                    </div>
+                    <div class="suggestions-list" id="suggestionsList"></div>
+                </div>
+
+                <!-- Highlights Card -->
+                <div class="result-card highlights-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-star"></i> 代码亮点</h2>
+                    </div>
+                    <div class="highlights-list" id="highlightsList"></div>
+                </div>
+
+                <!-- Checklist Card -->
+                <div class="result-card checklist-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-check-square"></i> Review检查清单</h2>
+                    </div>
+                    <div class="checklist" id="checklist"></div>
+                </div>
+
+                <!-- Files Changed Card -->
+                <div class="result-card files-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-folder-open"></i> 变更文件</h2>
+                    </div>
+                    <div class="files-list" id="filesList"></div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>AI PR Review 助手 - 使用 Claude AI 驱动</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+</body>
+</html>
