@@ -313,6 +313,35 @@ body {
     color: var(--primary-color);
 }
 
+.card-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.action-btn {
+    padding: 0.5rem 1rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+}
+
+.action-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.action-btn i {
+    font-size: 0.875rem;
+}
+
 /* PR Info Card */
 .pr-meta {
     display: grid;
@@ -931,4 +960,56 @@ body {
         transform: translateX(0);
         opacity: 1;
     }
+}
+
+/* Export Menu */
+.export-menu {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    min-width: 150px;
+}
+
+.export-option {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    transition: background 0.2s;
+}
+
+.export-option:hover {
+    background: var(--bg-tertiary);
+}
+
+.export-option:first-child {
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.export-option:last-child {
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
+.export-option i {
+    width: 20px;
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+/* Cache indicator */
+.cache-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--info-color);
+    color: white;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    margin-bottom: 1rem;
 }

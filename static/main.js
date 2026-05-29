@@ -18,6 +18,10 @@ let providersData = {};
 // Custom config
 let customConfig = null;
 
+// Current review result
+let currentResult = null;
+let currentPrUrl = null;
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     reviewForm.addEventListener('submit', handleSubmit);
@@ -126,6 +130,10 @@ function enableSubmit() {
 function displayResults(data) {
     resultsSection.classList.remove('hidden');
 
+    // Store current result for export and commenting
+    currentResult = data;
+    currentPrUrl = prUrlInput.value.trim();
+
     // PR Info
     displayPRInfo(data.pr_info, data.statistics);
 
@@ -149,6 +157,11 @@ function displayResults(data) {
 
     // Files
     displayFiles(data.files_changed);
+
+    // Show cache indicator if from cache
+    if (data.from_cache) {
+        showNotification('使用缓存结果', 'info');
+    }
 
     // Scroll to results
     resultsSection.scrollIntoView({ behavior: 'smooth' });
@@ -503,4 +516,137 @@ function showError(message) {
             </button>
         </div>
     `;
+}
+
+// Post comment to GitHub PR
+async function postComment() {
+    if (!currentResult || !currentPrUrl) {
+        showNotification('请先分析一个PR', 'error');
+        return;
+    }
+
+    if (!confirm('确定要将分析结果评论到GitHub PR吗？')) {
+        return;
+    }
+
+    try {
+        showNotification('正在发送评论...', 'info');
+
+        const response = await fetch(`${API_BASE}/api/comment`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                pr_url: currentPrUrl,
+                analysis: currentResult.analysis,
+                type: 'review',
+                provider: getSelectedProvider(),
+                model: getSelectedModel()
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            throw new Error(data.error);
+        }
+
+        showNotification('评论已发布到GitHub PR！', 'success');
+
+        if (data.comment_url) {
+            window.open(data.comment_url, '_blank');
+        }
+    } catch (error) {
+        showNotification(`评论失败: ${error.message}`, 'error');
+    }
+}
+
+// Export analysis result
+async function exportResult(format = 'markdown') {
+    if (!currentResult) {
+        showNotification('请先分析一个PR', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE}/api/export`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                result: currentResult,
+                format: format,
+                provider: getSelectedProvider(),
+                model: getSelectedModel()
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('导出失败');
+        }
+
+        // Get the filename from Content-Disposition header
+        const contentDisposition = response.headers.get('Content-Disposition');
+        let filename = `review-report.${format === 'markdown' ? 'md' : format}`;
+        if (contentDisposition) {
+            const matches = contentDisposition.match(/filename=(.+)/);
+            if (matches) {
+                filename = matches[1];
+            }
+        }
+
+        // Download the file
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+
+        showNotification('导出成功！', 'success');
+    } catch (error) {
+        showNotification(`导出失败: ${error.message}`, 'error');
+    }
+}
+
+// Show export menu
+function showExportMenu(event) {
+    event.preventDefault();
+
+    const menu = document.createElement('div');
+    menu.className = 'export-menu';
+    menu.innerHTML = `
+        <div class="export-option" onclick="exportResult('markdown')">
+            <i class="fas fa-file-alt"></i> Markdown
+        </div>
+        <div class="export-option" onclick="exportResult('html')">
+            <i class="fas fa-file-code"></i> HTML
+        </div>
+        <div class="export-option" onclick="exportResult('json')">
+            <i class="fas fa-file-export"></i> JSON
+        </div>
+    `;
+
+    // Position the menu
+    const rect = event.target.getBoundingClientRect();
+    menu.style.position = 'fixed';
+    menu.style.top = `${rect.bottom + 5}px`;
+    menu.style.right = `${window.innerWidth - rect.right}px`;
+
+    // Remove existing menu if any
+    const existingMenu = document.querySelector('.export-menu');
+    if (existingMenu) {
+        existingMenu.remove();
+    }
+
+    document.body.appendChild(menu);
+
+    // Close menu when clicking outside
+    setTimeout(() => {
+        document.addEventListener('click', function closeMenu() {
+            menu.remove();
+            document.removeEventListener('click', closeMenu);
+        });
+    }, 100);
 }

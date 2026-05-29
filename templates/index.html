@@ -192,6 +192,14 @@
                 <div class="result-card summary-card">
                     <div class="card-header">
                         <h2><i class="fas fa-file-alt"></i> 变更总结</h2>
+                        <div class="card-actions">
+                            <button class="action-btn" onclick="postComment()" title="评论到GitHub">
+                                <i class="fab fa-github"></i> 评论到PR
+                            </button>
+                            <button class="action-btn" onclick="exportResult('markdown')" title="导出Markdown">
+                                <i class="fas fa-download"></i> 导出
+                            </button>
+                        </div>
                     </div>
                     <div class="summary-content" id="summaryContent"></div>
                 </div>
